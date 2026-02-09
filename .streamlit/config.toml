@@ -1,0 +1,8 @@
+[theme]
+base = "dark"
+primaryColor = "#003f5c"  # The Green accent color you used before
+backgroundColor = "#0E1117" # Very dark blue-grey (Standard Streamlit Dark)
+secondaryBackgroundColor = "#dd5182" # Slightly lighter for sidebars/cards
+textColor = "#FAFAFA"
+font = "sans serif"
+codeFont = "monospace"
