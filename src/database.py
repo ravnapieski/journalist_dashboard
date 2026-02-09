@@ -90,3 +90,13 @@ def update_article_full_data(article_id, content, description, keywords):
     ''', (content, description, keywords, article_id))
     conn.commit()
     conn.close()
+    
+def create_journalist(j_id, j_name):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+    INSERT OR IGNORE INTO journalists (id, name, profile_url)
+    VALUES (?, ?, ?)
+    ''', (j_id, j_name, f"https://yle.fi/p/{j_id}/fi"))
+    conn.commit()
+    conn.close()

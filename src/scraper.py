@@ -160,3 +160,36 @@ def fetch_yle_article_details(url):
     except Exception as e:
         print(f"Error fetching {url}: {e}")
         return None
+    
+def scrape_journalist_name(profile_id):
+    """
+    Fetches the journalist's name from their profile page.
+    Expected format in <h1>: "Profiili: Firstname Lastname"
+    """
+    url = f"https://yle.fi/p/{profile_id}/fi"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+    
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Strategy: Find the first <h1> tag. 
+        # It usually contains "Profiili: Name"
+        h1 = soup.find('h1')
+        
+        if h1:
+            raw_text = h1.get_text().strip()
+            # Remove "Profiili:" prefix if it exists
+            if "Profiili:" in raw_text:
+                clean_name = raw_text.replace("Profiili:", "").strip()
+                return clean_name
+            return raw_text # Return raw text if "Profiili:" is missing
+            
+        return "Unknown Journalist"
+
+    except Exception as e:
+        print(f"Error fetching name for {profile_id}: {e}")
+        return "Unknown Journalist"
