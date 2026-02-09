@@ -43,14 +43,14 @@ def main():
     st.title("📰 Yle Journalist Dashboard")
     st.markdown("Analyze content production, topics, and styles of Yle journalists.")
 
-    # 1. Load Data
+    # Load Data
     try:
         df = load_data()
     except Exception as e:
         st.error(f"Error loading database: {e}")
         return
 
-    # 2. Sidebar Filters
+    # Sidebar Filters
     st.sidebar.header("Filters")
     
     # Filter by Journalist
@@ -60,7 +60,7 @@ def main():
     # Filter Data based on selection
     filtered_df = df[df['journalist_name'] == selected_journalist]
 
-    # 3. Top Metrics Row
+    # Top Metrics Row
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -80,7 +80,7 @@ def main():
 
     st.divider()
 
-    # 4. Content Analysis Section
+    # Content Analysis Section
     st.subheader(f"Articles by {selected_journalist}")
     
     # Search bar
@@ -91,18 +91,20 @@ def main():
     # Display Data Table
     # We configure the URL column to be clickable
     st.dataframe(
-        filtered_df[['title', 'url', 'char_count', 'keywords']],
+        filtered_df[['title', 'url', 'published_date', 'char_count', 'keywords']],
         column_config={
             "url": st.column_config.LinkColumn("Link"),
-            "char_count": st.column_config.ProgressColumn(
-                "Length", format="%d", min_value=0, max_value=10000
+            "char_count": st.column_config.NumberColumn(
+                "Length", format="%d"),
+            "published_date": st.column_config.DateColumn(
+                "Published", format="DD.MM.YYYY"
             ),
         },
         use_container_width=True,
         hide_index=True
     )
 
-    # 5. Future AI Section Placeholder
+    # Future AI Section Placeholder
     st.divider()
     st.subheader("🤖 AI Assistant (Coming Soon)")
     st.info("The RAG (Retrieval-Augmented Generation) chat interface will appear here.")

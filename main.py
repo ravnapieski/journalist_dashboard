@@ -19,11 +19,11 @@ def main():
     # save the journalist to DB 
     create_journalist(TARGET_PROFILE_ID, journalist_name)
     
-    print(f"Fetching links ({MAX_ARTICLES_TO_FETCH} items) ---")
+    print(f"Fetching links ({MAX_ARTICLES_TO_FETCH} items)")
     for article_batch in scrape_profile_feed_generator(TARGET_PROFILE_ID, max_articles=MAX_ARTICLES_TO_FETCH):
         save_articles(TARGET_PROFILE_ID, article_batch)
     
-    print("\nFetching content and metadata ---")
+    print("\nFetching content and metadata")
     
     # now fetching articles missing metadata or content
     pending_articles = get_articles_missing_metadata()
@@ -41,7 +41,8 @@ def main():
                 article['id'], 
                 data['content'], 
                 data['description'], 
-                data['keywords']
+                data['keywords'],
+                data['published_date']
             )
             print(f"   -> OK. Metadata + {len(data['content'])} characters of text.")
         else:

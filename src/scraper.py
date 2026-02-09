@@ -108,7 +108,7 @@ def scrape_profile_feed_generator(profile_id, max_articles=10):
 
 def fetch_yle_article_details(url):
     """
-    Fetches article body text and meta data (description, keywords).
+    Fetches content, description, keywords and published time.
     """
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -120,25 +120,30 @@ def fetch_yle_article_details(url):
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # meta data
+        # METADATA
         description = ""
         keywords = ""
+        published_time = None
         
+        # Description
         meta_desc = soup.find("meta", attrs={"name": "description"})
-        if meta_desc and meta_desc.get("content"):
-            description = meta_desc["content"]
+        if meta_desc: description = meta_desc.get("content", "")
             
+        # Keywords
         meta_keys = soup.find("meta", attrs={"name": "keywords"})
-        if meta_keys and meta_keys.get("content"):
-            keywords = meta_keys["content"]
+        if meta_keys: keywords = meta_keys.get("content", "")
+            
+        # Published Time
+        # <meta property="article:published_time" content="...">
+        meta_time = soup.find("meta", property="article:published_time")
+        if meta_time:
+            published_time = meta_time.get("content", "")
 
-        # body text
+        # BODY CONTENT
         content_text = ""
         content_div = soup.find('section', class_='yle__article__content')
-        if not content_div:
-            content_div = soup.find('div', class_='yle__article__content')
-        if not content_div:
-            content_div = soup.find('main')
+        if not content_div: content_div = soup.find('div', class_='yle__article__content')
+        if not content_div: content_div = soup.find('main')
 
         if content_div:
             text_blocks = []
@@ -152,7 +157,8 @@ def fetch_yle_article_details(url):
             return {
                 "content": content_text,
                 "description": description,
-                "keywords": keywords
+                "keywords": keywords,
+                "published_date": published_time 
             }
         else:
             return None

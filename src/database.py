@@ -49,6 +49,12 @@ def upgrade_db_schema():
         print("Added column: keywords")
     except sqlite3.OperationalError:
         pass # Column already exists
+    # Check for published_date 
+    try:
+        cursor.execute("ALTER TABLE articles ADD COLUMN published_date TEXT")
+        print("Added column: published_date")
+    except sqlite3.OperationalError:
+        pass
 
     conn.commit()
     conn.close()
@@ -71,23 +77,30 @@ def save_articles(journalist_id, articles):
     print(f"Saved {count} new articles to database.")
 
 def get_articles_missing_metadata():
-    """Fetches articles, that dont have body or metadata"""
+    """Returns articles that are missing content, metadata, OR the published date."""
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, url FROM articles WHERE content IS NULL OR content = '' OR description IS NULL")
+    cursor.execute("""
+                   SELECT id, url
+                   FROM articles
+                   WHERE content IS NULL
+                    OR content = ''
+                    OR description IS NULL
+                    OR published_date IS NULL
+    """)
     rows = cursor.fetchall()
     conn.close()
     return [{"id": row[0], "url": row[1]} for row in rows]
 
-def update_article_full_data(article_id, content, description, keywords):
+def update_article_full_data(article_id, content, description, keywords, published_date):
     """Updates article body and metadata"""
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
         UPDATE articles 
-        SET content = ?, description = ?, keywords = ?
+        SET content = ?, description = ?, keywords = ?, published_date = ?
         WHERE id = ?
-    ''', (content, description, keywords, article_id))
+    ''', (content, description, keywords, published_date, article_id))
     conn.commit()
     conn.close()
     
