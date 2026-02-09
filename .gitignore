@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+.env
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Database (Don't commit your actual data!)
+*.db
+*.sqlite3
+data/

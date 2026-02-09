@@ -1,0 +1,6 @@
+selenium
+beautifulsoup4
+webdriver-manager
+requests
+finnish-media-scrapers
+pandas
