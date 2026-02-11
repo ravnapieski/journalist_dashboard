@@ -6,3 +6,5 @@ finnish-media-scrapers
 pandas
 streamlit
 matplotlib
+plotly
+numpy

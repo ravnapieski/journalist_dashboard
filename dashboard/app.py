@@ -1,18 +1,20 @@
-import streamlit as st
+import streamlit as st # type: ignore
 import sqlite3
 import pandas as pd
 import sys
+import random
 import os
 import re
-import random
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
+import plotly.graph_objects as go # type: ignore
 
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.config import DB_PATH
+from src.config import DB_PATH, COLORS
 from main import run_scraper_pipeline
+from mock_utils import generate_mock_analytics
 
 # --- Page Config ---
 st.set_page_config(page_title="Yle Journalist Dashboard", page_icon="📰", layout="wide")
@@ -45,59 +47,29 @@ def extract_id_from_url(url):
     if match:
         return match.group(0)
     return None
-
-def generate_mock_analytics(seed_str):
-    """
-    Generates consistent 'fake' stats based on the input seed (url).
-    """
-    # Seed the random generator so the stats for a specific article are always the same
-    random.seed(seed_str)
-    
-    views = random.randint(1500, 85000)
-    avg_read_time = random.uniform(0.4, 8.0) # Minutes
-    conversion_rate = random.uniform(0.5, 6.9) # Percent
-    
-    # Mock Age Distribution
-    age_groups = ['16-24', '25-34', '35-44', '45-54', '55-64', '65+']
-    age_data = [random.randint(10, 100) for _ in age_groups]
-    
-    # Mock Gender distribution
-    male = random.randint(35, 60)
-    female = random.randint(40, 65)
-    total = male + female
-    gender_counts = [male / total * 100, female / total * 100]
-    gender_labels = ["Male", "Female"]
-    
-    # Mock device split
-    r1 = random.randint(60, 80)
-    r2 = random.randint(10, 30)
-    r3 = max(2, 100 - (r1 + r2)) # Other (Tablet/Console)
-    
-    # Normalize exactly to 100% just in case
-    total = r1 + r2 + r3
-    device_data = {
-        "Mobile": (r1 / total) * 100,
-        "Desktop": (r2 / total) * 100,
-        "Other": (r3 / total) * 100
-    }
-    
-    return {
-        "views": views,
-        "read_time": avg_read_time,
-        "conversions": conversion_rate,
-        "age_data": pd.DataFrame({"Age Group": age_groups, "Readers": age_data}),
-        "gender_data": {"labels": gender_labels, "counts": gender_counts},
-        "device_data": device_data
-    }
     
 # --- Main Dashboard ---
 def main():
-    # --- SIDEBAR: ADD NEW JOURNALIST ---
+    st.markdown(
+        """
+        <style>
+            [data-testid="stSidebarContent"] label,
+            [data-testid="stSidebarContent"] h1,
+            [data-testid="stSidebarContent"] h2 {
+                color: white !important;
+                /* 1px right, 2px down, 3px blur */
+                text-shadow: 1px 2px 3px rgba(0, 0, 0, 0.5);
+            }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    # --- SIDEBAR: SCRAPE AND SELECT JOURNALIST ---
     with st.sidebar:
         st.header("Add New Journalist")
         new_url = st.text_input("Paste Profile URL", placeholder="https://yle.fi/p/56-74-1533/fi")
         
-        # 1. Scraping Controls
+        # Scraping Controls
         col1, col2 = st.columns([2, 1])
         with col1:
             # Default is 10. If 'scrape_all' is checked, this input is disabled visually (optional UI polish)
@@ -112,7 +84,7 @@ def main():
             st.warning("⚠️ Fetching many articles may take some time.")
 
         # Action Button
-        if st.button("Scrape & Add"):
+        if st.button("Scrape & Add", type="primary"):
             if new_url:
                 profile_id = extract_id_from_url(new_url)
                 if profile_id:
@@ -122,7 +94,7 @@ def main():
                             limit_arg = float('inf') if scrape_all else article_limit
                             
                             st.write(f"Scraping (Target: {limit_arg})...")
-                            name, count = run_scraper_pipeline(profile_id, max_articles=limit_arg)
+                            name, count = run_scraper_pipeline(profile_id, max_articles=limit_arg) # type: ignore
                             
                             status.update(label=f"Done! Added {name}", state="complete", expanded=False)
                             
@@ -179,11 +151,11 @@ def main():
     # Display Metrics
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Total Articles", len(filtered_df))
+        st.metric("Total Articles (in database)", len(filtered_df))
     with col2:
         if not filtered_df.empty:
             avg_len = filtered_df['char_count'].mean()
-            st.metric("Avg Length", f"{int(avg_len)} chars")
+            st.metric("Avg Article Length", f"{int(avg_len)} chars")
     with col3:
         if 'published_date' in filtered_df.columns and not filtered_df['published_date'].isnull().all():
             latest = filtered_df['published_date'].max()
@@ -216,10 +188,14 @@ def main():
             on_select="rerun", 
             selection_mode="single-row"
         )
-        # Handle selection
+        # autoselect top row by default
         if selection.selection.rows:
-            # Get the selected row index and fetch data
             selected_index = selection.selection.rows[0]
+        else:
+            selected_index = 0
+
+        # check bounds to ensure dataframe isn't empty
+        if selected_index < len(filtered_df):
             selected_article = filtered_df.iloc[selected_index]
             
             # Generate Mock Stats
@@ -260,21 +236,20 @@ def main():
                 age_df = stats["age_data"]
 
                 fig, ax = plt.subplots(figsize=FIGSIZE, dpi=DPI)
-                colors = ['#003f5c', '#444e86', '#955196', '#dd5182', '#ff6e54', '#ffa600']
 
                 def make_autopct(values, labels):
                     def autopct(pct):
-                        idx = autopct.idx
+                        idx = autopct.idx # type: ignore
                         label = labels[idx]
-                        autopct.idx += 1
+                        autopct.idx += 1 # type: ignore
                         return f"{label}\n{pct:.1f}%"
-                    autopct.idx = 0
+                    autopct.idx = 0 # type: ignore
                     return autopct
 
                 wedges, _, autotexts = ax.pie(
                     age_df["Readers"],
                     startangle=90,
-                    colors=colors,
+                    colors=COLORS,
                     autopct=make_autopct(age_df["Readers"].tolist(), age_df["Age Group"].tolist()),
                     pctdistance=0.72,
                     wedgeprops=dict(width=0.47, edgecolor="white"),
@@ -283,13 +258,13 @@ def main():
 
                 for t in autotexts:
                     t.set_color("white")
-                    t.set_path_effects(stroke)
-                    t.set_ha("center")
-                    t.set_va("center")
+                    t.set_path_effects(stroke) # type: ignore
+                    t.set_ha("center") # type: ignore
+                    t.set_va("center") # type: ignore
 
                 ax.axis("equal")
                 fig.tight_layout(pad=0.3)
-                fig.patch.set_alpha(0)
+                fig.patch.set_alpha(0) # type: ignore
                 st.pyplot(fig, width='content')
 
             # --- CHART 2: GENDER ---
@@ -298,25 +273,29 @@ def main():
                 g_data = stats["gender_data"]
 
                 fig2, ax2 = plt.subplots(figsize=FIGSIZE, dpi=DPI)
-                colors_gender = ['#003f5c', '#dd5182']
+                colors_gender = [COLORS[0], COLORS[3]]
                 wedges2, texts2, autotexts2 = ax2.pie(
                     g_data['counts'],
-                    #labels=g_data['labels'],
+                    labels=g_data['labels'],
                     autopct='%1.1f%%',
                     startangle=140,
                     colors=colors_gender,
                     wedgeprops=dict(width=1, edgecolor='white'),
-                    textprops={'fontsize': FONT_SIZE}
+                    textprops={'fontsize': FONT_SIZE},
+                    labeldistance=0.5,
+                    pctdistance=0.72
                 )
-
-                # Stroke + color for percentages
+                for t in texts2:
+                    t.set_color("white")
+                    t.set_path_effects(stroke) # type: ignore
+                    
                 for t in autotexts2:
                     t.set_color("white")
-                    t.set_path_effects(stroke)
+                    t.set_path_effects(stroke) # type: ignore
 
                 ax2.axis('equal')
                 fig2.tight_layout(pad=0.3)
-                fig2.patch.set_alpha(0)
+                fig2.patch.set_alpha(0) # type: ignore
                 st.pyplot(fig2, width='content')
 
             # --- CHART 3: DEVICES ---
@@ -334,9 +313,9 @@ def main():
                 ax3.axis('off')
 
                 # Colors: bottom -> other, middle -> desktop, top -> mobile
-                c_other = '#444e86'
-                c_desktop = '#955196'
-                c_mobile = '#ff6e54'
+                c_other = COLORS[1]
+                c_desktop = COLORS[2]
+                c_mobile = COLORS[3]
 
                 # Draw stacked bars bottom -> top
                 p_other = ax3.bar(0, other, width=0.5, color=c_other, edgecolor='white')
@@ -346,21 +325,71 @@ def main():
                 label_kwargs = dict(va='center', ha='left', fontsize=FONT_SIZE, color='white',
                                     bbox=dict(facecolor='black', alpha=0.35, boxstyle='round,pad=0.2', edgecolor='none'))
 
-                t_other = ax3.text(0.62, other / 2, f"Other\n{other:.0f}%", **label_kwargs)
-                t_desktop = ax3.text(0.62, other + desktop / 2, f"Desktop\n{desktop:.0f}%", **label_kwargs)
-                t_mobile = ax3.text(0.62, other + desktop + mobile / 2, f"Mobile\n{mobile:.0f}%", **label_kwargs)
+                t_other = ax3.text(0.62, other / 2, f"Other\n{other:.0f}%", **label_kwargs) # type: ignore
+                t_desktop = ax3.text(0.62, other + desktop / 2, f"Desktop\n{desktop:.0f}%", **label_kwargs) # type: ignore
+                t_mobile = ax3.text(0.62, other + desktop + mobile / 2, f"Mobile\n{mobile:.0f}%", **label_kwargs) # type: ignore
 
                 # Add the same stroke effect on the text artists (makes them pop)
                 for txt in (t_other, t_desktop, t_mobile):
-                    txt.set_path_effects(stroke)
+                    txt.set_path_effects(stroke) # type: ignore
 
                 fig3.tight_layout(pad=0.3)
-                fig3.patch.set_alpha(0)
+                fig3.patch.set_alpha(0) # type: ignore
                 st.pyplot(fig3, width='content')
+            
+            # --- Interactive time series chart ---
+            st.markdown("---")
+            st.subheader("📈 Traffic History")
+            
+            # Get data
+            ts_df = stats['clicks_df']
+            
+            # Create Plotly Figure
+            fig = go.Figure()
+            
+            # Add the Area Trace (The "Mountain")
+            fig.add_trace(go.Scatter(
+                x=ts_df['Date'],
+                y=ts_df['Views'],
+                mode='lines',
+                fill='tozeroy', # Fills area below the line
+                line=dict(color=COLORS[2], width=2), # Your theme green
+                name='Views'
+            ))
+            
+            # Update Layout for "Bloomberg" Aesthetic
+            fig.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)', # Transparent background
+                plot_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=0, r=0, t=0, b=0), # Remove whitespace
+                height=350,
+                hovermode="x unified", # Tooltip shows data for all lines at that x-position
                 
+                # The Axis Styling
+                xaxis=dict(
+                    showgrid=False, 
+                    showline=True, 
+                    linecolor='#333',
+                    rangeselector=dict(
+                        #bgcolor="#262730",
+                        activecolor=COLORS[2]
+                    ),
+                    rangeslider=dict(visible=True, thickness=0.1), # The Zoom Bar at bottom!
+                    type="date"
+                ),
+                yaxis=dict(
+                    showgrid=True, 
+                    gridcolor='#333', # Subtle grid lines
+                    zeroline=False
+                )
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+            
+               
         # Success message underneath the table if just added
-        if 'last_added_journalist' in st.session_state and st.session_state['last_added_journalist'] == selected_journalist:
-            st.caption(f"✅ Displaying newly added data for {selected_journalist}")
+        if 'last_added_journalist' in st.session_state and st.session_state['last_added_journalist'] == selected_journalist: # type: ignore
+            st.caption(f"✅ Displaying newly added data for {selected_journalist}") # type: ignore
 
 if __name__ == "__main__":
     main()

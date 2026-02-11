@@ -10,3 +10,6 @@ DB_PATH = os.path.join(DB_FOLDER, DB_NAME)
 
 # Ensure data directory exists
 os.makedirs(DB_FOLDER, exist_ok=True)
+
+# Color Palette
+COLORS = ['#002858', '#054674', '#12CAB5', '#F0028D', '#8A278D', "#001631"]
