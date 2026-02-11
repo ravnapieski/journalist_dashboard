@@ -30,7 +30,8 @@ def load_data():
         a.url,
         length(a.content) as char_count,
         a.keywords,
-        j.name as journalist_name
+        j.name as journalist_name,
+        a.journalist_id
     FROM articles a
     LEFT JOIN journalists j ON a.journalist_id = j.id
     """
@@ -38,7 +39,8 @@ def load_data():
         df = pd.read_sql_query(query, conn)
         conn.close()
         return df
-    except Exception:
+    except Exception as e:
+        st.error(f"SQL Error: {e}")
         conn.close()
         return pd.DataFrame()
 
@@ -143,7 +145,10 @@ def main():
             index=default_index
         )
         filtered_df = df[df['journalist_name'] == selected_journalist]
+        j_id = filtered_df['journalist_id'].iloc[0] if not filtered_df.empty else "N/A"
+        profile_url = f"https://yle.fi/p/{j_id}/fi" if j_id != "N/A" else "N/A"
         st.title(f"🪪 {selected_journalist}")   # Update title with name of journalist
+        st.caption(f"**Profile URL:** {profile_url}")
     else:
         st.warning("No journalists found in DB.")
         filtered_df = df
@@ -161,7 +166,6 @@ def main():
             latest = filtered_df['published_date'].max()
             if latest:
                 st.metric("Latest Article", latest[:10])
-
     st.divider()
 
     # --- INTERACTIVE DATA TABLE ---
