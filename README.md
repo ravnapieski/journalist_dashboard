@@ -47,9 +47,10 @@ streamlit run dashboard/app.py
 # Enjoy
 ```
 
-### 🔮 Future Plans
+### 🔮 Future Plans / Already implemented features because the future is now
 
-**Pseudo Stats:** Real analytics aren’t public, so these stats are vibes-only (unless I set up a backdoor while working at Yle 😈😈😈). jk, obviously
+**Pseudo Stats:** Real analytics aren’t public, so these stats are vibes-only (unless I set up a backdoor while working at Yle 😈😈😈). jk, obviously  
+**--> BOOM! MANIFESTED! next up AI hehehe**
 
 **AI / RAG Integration:** We finna hook this up to an LLM so you can chat with the database.
 
