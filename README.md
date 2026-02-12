@@ -1,4 +1,4 @@
-# 🗿 Yle Journalist Dashboard 🗿
+# 🗿Journalist Dashboard🗿
 
 Yo, welcome to the absolute GIGACHAD of data projects. This is a dashboard project that scrapes Yle journalist articles, stores the data, and gives you a clean way to explore it. Built to make analysis easy and insights obvious. As Mr. ChatGPT would say it: "no fluff".
 
