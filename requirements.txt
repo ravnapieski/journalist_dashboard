@@ -8,3 +8,9 @@ streamlit
 matplotlib
 plotly
 numpy
+
+langchain-huggingface
+langchain-community
+sentence-transformers
+chromadb
+langchain-groq

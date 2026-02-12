@@ -15,6 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.config import DB_PATH, COLORS
 from main import run_scraper_pipeline
 from mock_utils import generate_mock_analytics
+from dashboard.rag_ui import render_rag_ui
 
 # --- Page Config ---
 st.set_page_config(page_title="Yle Journalist Dashboard", page_icon="📰", layout="wide")
@@ -130,6 +131,9 @@ def main():
     journalist_list = df['journalist_name'].unique().tolist()
     journalist_list = [x for x in journalist_list if x is not None]
     
+    j_id = None
+    selected_journalist = None
+    
     # Auto-Select Logic implementation
     # We check if a new journalist was just added and if they exist in the list
     default_index = 0
@@ -173,7 +177,6 @@ def main():
         st.subheader("📰Articles:")
         st.info("💡 Click the boxes on the left to view detailed analytics.")
         
-        # Calculate max length and convert to standard Python int
         max_char_count = int(filtered_df['char_count'].max()) if not filtered_df.empty else 10000
 
         selection = st.dataframe(
@@ -395,5 +398,9 @@ def main():
         if 'last_added_journalist' in st.session_state and st.session_state['last_added_journalist'] == selected_journalist: # type: ignore
             st.caption(f"✅ Displaying newly added data for {selected_journalist}") # type: ignore
 
+    # --- RAG/AI CHAT SECTION ---
+    if j_id and j_id != "N/A" and selected_journalist:
+        render_rag_ui(j_id, selected_journalist)
+        
 if __name__ == "__main__":
     main()
