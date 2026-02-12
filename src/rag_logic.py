@@ -22,6 +22,8 @@ from src.rag_config import (
 )
 
 class RAGIngestion:
+    """Handles fetching journalist articles from the database, 
+    splitting them into text chunks, and ingesting them into the vector store."""
     def __init__(self):
         print(f"Loading embedding model: {RAG_SETTINGS['embedding_model']}...")
         self.embeddings = HuggingFaceEmbeddings(
@@ -89,6 +91,9 @@ class RAGIngestion:
         return False
 
 class RAGChain:
+    """Manages retrieval-augmented generation:
+    retrieves relevant article chunks, formats the prompt, 
+    and generates answers using ChatGroq."""
     def __init__(self):
         # init embeddinggs
         self.embeddings = HuggingFaceEmbeddings(
@@ -177,8 +182,8 @@ if __name__ == "__main__":
     load_dotenv() # Load .env for API Key
 
     # Hardcoded test
-    TEST_JOURNALIST_ID = "56-74-263"
-    TEST_QUERY = "What does this journalist write about regarding trees?"
+    TEST_JOURNALIST_ID = "56-74-1533" # my yle journalist id :D
+    TEST_QUERY = "What does this journalist write about? Give short answer."
 
     print(f"--- RAG TEST: {TEST_QUERY} ---")
     

@@ -1,5 +1,5 @@
 import streamlit as st # type: ignore
-from src.rag_logic import RAGChain
+from src.rag_logic import RAGChain, RAGIngestion
 import time
 
 # load embedding model once per session, not on every interaction.
@@ -12,8 +12,23 @@ def render_rag_ui(journalist_id, journalist_name):
     Renders the RAG Chat interface for a specific journalist.
     """
     st.markdown(f"### 🤖 Chat with {journalist_name}'s Articles")
-    st.markdown("Ask questions about their reporting style, specific topics, or gaps in their coverage.")
-
+    
+    # sync with ai button to update vector database after scraping
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.markdown("Ask questions about their reporting style, specific topics, or gaps in their coverage.")
+    with col2:
+        if st.button("🔄 Sync/Update AI"):
+            with st.spinner(f"Vectorizing {journalist_name}'s articles..."):
+                ingester = RAGIngestion()
+                success = ingester.ingest_journalist_data(journalist_id)
+                if success:
+                    st.success("AI Knowledge Base Updated!")
+                    time.sleep(1) 
+                    st.rerun() # just to be sure
+                else:
+                    st.warning("No articles found in database to sync.")
+    
     # init chat history
     # use a unique key per journalist so chats don't mix if you switch profiles
     session_key = f"chat_history_{journalist_id}"

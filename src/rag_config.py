@@ -28,6 +28,7 @@ INSTRUCTIONS:
 2. If the answer is not in the context, state that you cannot answer based on the available articles.
 3. You must answer in English
 4. CITATIONS: You MUST cite the specific article title when referencing information. Format citations as [Title].
+4. Be concise, accurate and professional.
 """
 
 QA_PROMPT_TEMPLATE = """

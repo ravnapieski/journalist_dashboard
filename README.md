@@ -38,9 +38,6 @@ SQLite 🗄️: Keeps the data secure, no leaky epstein file vibes.
 # Install the drip:
 pip install -r requirements.txt
 
-# Scrape data:
-python main.py # (Watch the bot go brrr)
-
 # Launch the Dashboard:
 streamlit run dashboard/app.py
 
@@ -53,5 +50,6 @@ streamlit run dashboard/app.py
 **--> BOOM! MANIFESTED! next up AI hehehe**
 
 **AI / RAG Integration:** We finna hook this up to an LLM so you can chat with the database.
+**--> BOOM X2! FINALLY GOT THIS RAG INTEGRATED!!!!! Might still experiment with different prompts and routing or more advanced features later but I'd say this is pretty good for now.**
 
-Status: Still cooking. 👨‍🍳 Vibes: Immaculate. ✨
+Status: Kitchen is on fire.🔥🔥🔥 👨‍🍳 Vibes: Immaculate. ✨
