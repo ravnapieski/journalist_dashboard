@@ -2,7 +2,7 @@ import random
 import datetime
 import pandas as pd
 import numpy as np
-import plotly.graph_objects as go
+import plotly.graph_objects as go # type: ignore
 
 def generate_mock_analytics(seed_str, pub_date_str=None):
     """
@@ -16,7 +16,7 @@ def generate_mock_analytics(seed_str, pub_date_str=None):
     
     # --- Date Handling ---
     try:
-        pub_date = pd.to_datetime(pub_date_str).date()
+        pub_date = pd.to_datetime(pub_date_str).date() # type: ignore
     except:
         pub_date = datetime.date.today() - datetime.timedelta(days=30)
     
