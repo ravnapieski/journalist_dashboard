@@ -4,6 +4,12 @@ Yo, welcome to the absolute GIGACHAD of data projects. This is a dashboard proje
 
 We are analyzing who is actually cooking 🍳 and who is just posting Ls.
 
+## 📺 Project Demo
+
+[![Journalist Dashboard RAG Demo](https://img.youtube.com/vi/MFjXtOsUpuY/maxresdefault.jpg)](https://www.youtube.com/watch?v=MFjXtOsUpuY 'Journalist Dashboard RAG Demo')
+
+_Click the image above to watch the RAG Chat in action._
+
 ## 🥶 The Features (Straight Ws)
 
 ### 🤖 RAG Chat (The Big Brain) **[NEW]**
